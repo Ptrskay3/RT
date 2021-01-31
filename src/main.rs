@@ -1,9 +1,8 @@
 use image;
-use image::{DynamicImage, GenericImage, Rgba, Pixel};
+use image::{DynamicImage, GenericImage, Pixel, Rgba};
+// use rays::light::*;
 use rays::vector3::Vector3;
-use std::ops::{Sub, Mul, Add};
-use rays::light::*;
-
+use std::ops::{Add, Mul, Sub};
 
 const GAMMA: f32 = 2.2;
 
@@ -11,15 +10,10 @@ fn gamma_encode(linear: f32) -> f32 {
     linear.powf(1.0 / GAMMA)
 }
 
-fn gamma_decode(encoded: f32) -> f32 {
-    encoded.powf(GAMMA)
-}
-
 pub enum Element {
     Sphere(Sphere),
     Plane(Plane),
 }
-
 
 impl Element {
     pub fn color(&self) -> &Color {
@@ -28,8 +22,6 @@ impl Element {
             Element::Plane(ref p) => &p.color,
         }
     }
-
-
 }
 
 #[derive(Copy, Clone, Debug)]
@@ -43,7 +35,9 @@ pub struct Point {
 impl Point {
     pub fn zero() -> Self {
         Self {
-            x: 0., y: 0., z: 0.
+            x: 0.,
+            y: 0.,
+            z: 0.,
         }
     }
 }
@@ -106,7 +100,6 @@ pub struct Sphere {
     pub color: Color,
 }
 
-
 pub struct Plane {
     pub p: Point,
     pub normal: Vector3,
@@ -119,7 +112,6 @@ pub struct Color {
     pub green: f32,
     pub blue: f32,
 }
-
 
 impl Mul for Color {
     type Output = Color;
@@ -157,16 +149,15 @@ impl Add<Color> for Color {
     }
 }
 
-
 impl Color {
     pub fn to_rgba(&self) -> Rgba<u8> {
-      Rgba::from_channels(
+        Rgba::from_channels(
             (gamma_encode(self.red) * 255.0) as u8,
             (gamma_encode(self.green) * 255.0) as u8,
             (gamma_encode(self.blue) * 255.0) as u8,
             255,
         )
-}
+    }
 
     pub fn clamp(&self) -> Color {
         Color {
@@ -186,24 +177,26 @@ impl Ray {
     pub fn create_prime(x: u32, y: u32, scene: &Scene) -> Self {
         assert!(scene.width > scene.height);
 
-        let field_of_view_adjustment = (scene.fov.to_radians() / 2.0).tan(); 
+        let field_of_view_adjustment = (scene.fov.to_radians() / 2.0).tan();
 
         let aspect = (scene.width as f64) / (scene.height as f64);
         // translate the (width x height) to the (-1..1 x -1..1) range
         // take account for aspect ratio
-        let sensor_x = field_of_view_adjustment * (aspect * (((x as f64 + 0.5) / scene.width as f64) * 2.0 - 1.0));
-        let sensor_y = field_of_view_adjustment * (1.0 - ((y as f64 + 0.5) / scene.height as f64) * 2.0);
+        let sensor_x = field_of_view_adjustment
+            * (aspect * (((x as f64 + 0.5) / scene.width as f64) * 2.0 - 1.0));
+        let sensor_y =
+            field_of_view_adjustment * (1.0 - ((y as f64 + 0.5) / scene.height as f64) * 2.0);
         Self {
             origin: Point::zero(),
             direction: Vector3 {
                 x: sensor_x,
                 y: sensor_y,
-                z: -1.0
-            }.normalize(),
+                z: -1.0,
+            }
+            .normalize(),
         }
-    } 
+    }
 }
-
 
 pub trait Hittable {
     fn hit(&self, ray: &Ray) -> Option<f64>;
@@ -215,7 +208,6 @@ pub struct Intersection<'a> {
     pub distance: f64,
     pub element: &'a Element,
 }
-
 
 impl<'a> Intersection<'a> {
     pub fn new<'b>(distance: f64, element: &'b Element) -> Intersection<'b> {
@@ -229,13 +221,12 @@ impl<'a> Intersection<'a> {
     }
 }
 
-
 impl Hittable for Element {
     fn hit(&self, ray: &Ray) -> Option<f64> {
         match *self {
             Element::Sphere(ref s) => s.hit(ray),
             Element::Plane(ref p) => p.hit(ray),
-        }    
+        }
     }
 
     fn surface_normal(&self, hit_point: &Point) -> Vector3 {
@@ -244,7 +235,6 @@ impl Hittable for Element {
             Element::Plane(ref p) => p.surface_normal(hit_point),
         }
     }
-
 }
 
 impl Element {
@@ -275,12 +265,16 @@ impl Hittable for Sphere {
         let t1 = hypo + thc;
 
         if t0 < 0.0 && t1 < 0.0 {
-           return None;
-       }
-
-       // in case there's two solutions, return the closer intersection
-       let distance = if t0 < t1 { t0 } else { t1 };
-       Some(distance)
+            return None;
+        } else if t0 < 0.0 {
+            Some(t1)
+        } else if t1 < 0.0 {
+            Some(t0)
+        } else {
+            // in case there's two solutions, return the closer intersection
+            let distance = if t0 < t1 { t0 } else { t1 };
+            Some(distance)
+        }
     }
 
     fn surface_normal(&self, hit_point: &Point) -> Vector3 {
@@ -300,19 +294,18 @@ impl Hittable for Plane {
                 return Some(dist);
             }
         }
-    None
+        None
     }
 
-    fn surface_normal(&self, point: &Point) -> Vector3 {
+    fn surface_normal(&self, _: &Point) -> Vector3 {
         -self.normal
     }
 }
 
-
 fn get_color(scene: &Scene, ray: &Ray, intersection: &Intersection) -> Color {
     let hit_point = ray.origin + (ray.direction * intersection.distance);
     let surface_normal = intersection.element.surface_normal(&hit_point);
-    
+
     // let direction_to_light = -scene.light.direction.normalize();
     let mut color = Color {
         red: 0.0,
@@ -328,53 +321,54 @@ fn get_color(scene: &Scene, ray: &Ray, intersection: &Intersection) -> Color {
             direction: direction_to_light,
         };
         let shadow_intersection = scene.trace(&shadow_ray);
-        let in_light = shadow_intersection.is_none() || shadow_intersection.unwrap().distance > light.distance(&hit_point);
-        // let in_light = scene.trace(&shadow_ray).is_none();
-        let light_intensity = if in_light { light.intensity(&hit_point) } else { 0.0 };
-        let light_power = (surface_normal.dot(&direction_to_light) as f32).max(0.0) * light_intensity;
+        let in_light = shadow_intersection.is_none()
+            || shadow_intersection.unwrap().distance > light.distance(&hit_point);
+        let light_intensity = if in_light {
+            light.intensity(&hit_point)
+        } else {
+            0.0
+        };
+        let light_power =
+            (surface_normal.dot(&direction_to_light) as f32).max(0.0) * light_intensity;
         let light_reflected = intersection.element.albedo() / std::f32::consts::PI;
         let light_color = light.color() * light_power * light_reflected;
-        color =  color + (*intersection.element.color() * light_color)
+        color = color + (*intersection.element.color() * light_color)
     }
 
     // intersection.element.color().clone() * scene.light.color.clone() *  light_power *
-                //light_reflected;
+    //light_reflected;
     color.clamp()
 }
 
 pub fn render(scene: &Scene) -> DynamicImage {
     let mut img = DynamicImage::new_rgb8(scene.width, scene.height);
     let black = Rgba::from_channels(0, 0, 0, 0);
-    let white = Rgba::from_channels(1, 1, 1, 1);
+    // let white = Rgba::from_channels(1, 1, 1, 1);
     for x in 0..scene.width {
         for y in 0..scene.height {
             let ray = Ray::create_prime(x, y, scene);
             let trace = scene.trace(&ray);
             if let Some(trace) = trace {
-                img.put_pixel(x, y, get_color(&scene, &ray, &trace).to_rgba()); // trace.element.color().to_rgba()
+                img.put_pixel(x, y, get_color(&scene, &ray, &trace).to_rgba());
             } else {
-                img.put_pixel(x, y, white);
+                img.put_pixel(x, y, black);
             }
-            
         }
     }
     img
 }
 
-
-
 pub struct DirectionalLight {
     pub direction: Vector3,
-    pub color: Color, 
+    pub color: Color,
     pub intensity: f32,
 }
 
 pub struct SphericalLight {
     pub position: Point,
-    pub color: Color, 
+    pub color: Color,
     pub intensity: f32,
 }
-
 
 pub enum Light {
     Directional(DirectionalLight),
@@ -414,55 +408,28 @@ impl Light {
     }
 }
 
-#[test]
-fn render_scene() {
-    // let elements = 
-    let scene = Scene {
-        width: 800,
-        height: 800,
-        fov: 120.0,
-        elements: Sphere {
-            center: Point {
-                x: 0.0,
-                y: 0.0,
-                z: -5.0,
-            },
-            radius: 1.0,
-            color: Color {
-                red: 0.4,
-                green: 1.0,
-                blue: 0.4,
-            },
-        },
-    };
-
-    let img: DynamicImage = render(&scene);
-    
-}
-
-
 fn main() {
     let elements = vec![
+        // Element::Sphere(Sphere {
+        //     center: Point {
+        //         x: -0.2,
+        //         y: 0.0,
+        //         z: -5.0,
+        //     },
+        //     radius: 1.0,
+        //     color: Color {
+        //         red: 0.4,
+        //         green: 0.0,
+        //         blue: 0.4,
+        //     },
+        // }),
         Element::Sphere(Sphere {
-            center: Point {
-                x: -0.2,
-                y: 0.0,
-                z: -5.0,
-            },
-            radius: 1.0,
-            color: Color {
-                red: 0.4,
-                green: 0.0,
-                blue: 0.4,
-            },
-        }),
-                Element::Sphere(Sphere {
             center: Point {
                 x: 2.0,
                 y: 1.0,
-                z: -5.0,
+                z: -3.0,
             },
-            radius: 1.5,
+            radius: 1.0,
             color: Color {
                 red: 0.4,
                 green: 1.0,
@@ -472,20 +439,20 @@ fn main() {
         Element::Plane(Plane {
             p: Point {
                 x: 0.0,
-                y: -2.0,
+                y: -1.0,
                 z: -6.0,
             },
             normal: Vector3 {
-                x: 0.0,
+                x: -0.0,
                 y: -20.0,
-                z: -2.0,
+                z: -1.0,
             },
             color: Color {
                 red: 0.3,
                 green: 0.3,
                 blue: 0.3,
             },
-        })
+        }),
     ];
 
     let lights = vec![
@@ -527,8 +494,8 @@ fn main() {
                 blue: 1.0,
             },
             intensity: 1.0,
-        })
-        ];
+        }),
+    ];
     let scene = Scene {
         width: 1920,
         height: 1080,
@@ -538,5 +505,5 @@ fn main() {
         shadow_bias: 1e-13,
     };
     let img = render(&scene);
-    img.save("test.png").unwrap();
+    img.save("test_img.png").unwrap();
 }

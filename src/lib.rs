@@ -1,2 +1,2 @@
-pub mod vector3;
 pub mod light;
+pub mod vector3;

@@ -1,6 +1,6 @@
-use std::ops::{Add, Sub, Mul, Neg};
+use std::ops::{Add, Mul, Neg, Sub};
 
-#[derive(Clone,  Copy, Debug)]
+#[derive(Clone, Copy, Debug)]
 pub struct Vector3 {
     pub x: f64,
     pub y: f64,
@@ -46,7 +46,6 @@ impl Vector3 {
         }
     }
 }
-
 
 impl Add for Vector3 {
     type Output = Vector3;
@@ -103,7 +102,6 @@ impl Mul<f64> for Vector3 {
 //         other * self
 //     }
 // }
-
 
 impl Neg for Vector3 {
     type Output = Vector3;
