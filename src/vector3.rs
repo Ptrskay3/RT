@@ -1,5 +1,6 @@
 use std::ops::{Add, Sub, Mul, Neg};
 
+#[derive(Clone,  Copy, Debug)]
 pub struct Vector3 {
     pub x: f64,
     pub y: f64,
@@ -102,6 +103,7 @@ impl Mul<f64> for Vector3 {
 //         other * self
 //     }
 // }
+
 
 impl Neg for Vector3 {
     type Output = Vector3;
