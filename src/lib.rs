@@ -1,2 +1,9 @@
+pub mod color;
 pub mod light;
+pub mod point;
+pub mod primitives;
+pub mod ray;
+pub mod render;
+pub mod scene;
+pub mod utils;
 pub mod vector3;
