@@ -39,14 +39,14 @@ impl Light {
             Light::Directional(ref d) => d.intensity,
             Light::Spherical(ref s) => {
                 let r2 = (s.position - *hit_point).length_squared() as f32;
-                s.intensity / (4.0 * ::std::f32::consts::PI * r2)
+                s.intensity / (4.0 * std::f32::consts::PI * r2)
             }
         }
     }
 
     pub fn distance(&self, hit_point: &Point) -> f64 {
         match *self {
-            Light::Directional(_) => ::std::f64::INFINITY,
+            Light::Directional(_) => std::f64::INFINITY,
             Light::Spherical(ref s) => (s.position - *hit_point).length(),
         }
     }

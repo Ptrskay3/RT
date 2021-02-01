@@ -71,6 +71,14 @@ impl Sub for Vector3 {
     }
 }
 
+impl Mul<Vector3> for f64 {
+    type Output = Vector3;
+
+    fn mul(self, other: Vector3) -> Vector3 {
+        other * self
+    }
+}
+
 impl Mul for Vector3 {
     type Output = Vector3;
 
@@ -94,14 +102,6 @@ impl Mul<f64> for Vector3 {
         }
     }
 }
-
-// impl Mul<Vector3> for f64 {
-//     type Output = Vector3;
-
-//     fn mul(self, other: Vector3) -> f64 {
-//         other * self
-//     }
-// }
 
 impl Neg for Vector3 {
     type Output = Vector3;

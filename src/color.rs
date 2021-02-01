@@ -1,7 +1,39 @@
-use crate::utils::gamma_encode;
+use crate::primitives::TextureCoordinates;
+use crate::utils::{gamma_decode, gamma_encode, wrap};
 use std::ops::{Add, Mul};
+use std::path::PathBuf;
 
-use image::{Pixel, Rgba};
+use image::{DynamicImage, GenericImageView, Pixel, Rgba};
+
+pub struct Texture {
+    pub path: PathBuf,
+    pub texture: DynamicImage,
+}
+
+pub fn dummy_texture() -> DynamicImage {
+    DynamicImage::new_rgb8(1, 1)
+}
+
+
+pub enum Colorization {
+    Color(Color),
+    Texture(DynamicImage),
+}
+
+impl Colorization {
+    pub fn color(&self, texture_coords: &TextureCoordinates) -> Color {
+        match *self {
+            Colorization::Color(ref c) => c.clone(),
+
+            Colorization::Texture(ref tex) => {
+                let tex_x = wrap(texture_coords.x, tex.width());
+                let tex_y = wrap(texture_coords.y, tex.height());
+
+                Color::from_rgba(tex.get_pixel(tex_x, tex_y))
+            }
+        }
+    }
+}
 
 #[derive(Debug, Clone, Copy)]
 pub struct Color {
@@ -54,6 +86,13 @@ impl Color {
             (gamma_encode(self.blue) * 255.0) as u8,
             255,
         )
+    }
+    pub fn from_rgba(rgba: Rgba<u8>) -> Color {
+        Color {
+            red: gamma_decode((rgba[0] as f32) / 255.0),
+            green: gamma_decode((rgba[1] as f32) / 255.0),
+            blue: gamma_decode((rgba[2] as f32) / 255.0),
+        }
     }
 
     pub fn clamp(&self) -> Color {

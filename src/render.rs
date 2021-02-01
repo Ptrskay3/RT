@@ -1,5 +1,5 @@
 use crate::ray::Ray;
-use crate::scene::{get_color, Scene};
+use crate::scene::{cast_ray, get_color, Scene};
 use image::{DynamicImage, GenericImage, Pixel, Rgba};
 
 pub fn render(scene: &Scene) -> DynamicImage {
@@ -9,12 +9,12 @@ pub fn render(scene: &Scene) -> DynamicImage {
     for x in 0..scene.width {
         for y in 0..scene.height {
             let ray = Ray::create_prime(x, y, scene);
-            let trace = scene.trace(&ray);
-            if let Some(trace) = trace {
-                img.put_pixel(x, y, get_color(&scene, &ray, &trace).to_rgba());
-            } else {
-                img.put_pixel(x, y, black);
-            }
+            // let trace = scene.trace(&ray);
+            // if let Some(trace) = trace {
+            img.put_pixel(x, y, cast_ray(scene, &ray, 0).to_rgba());
+            // } else {
+            // img.put_pixel(x, y, black);
+            // }
         }
     }
     img
