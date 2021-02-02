@@ -14,6 +14,8 @@ const BLACK: Color = Color {
 pub struct Scene {
     pub width: u32,
     pub height: u32,
+    pub origin: Point,
+    pub direction: Vector3,
     pub fov: f64,
     pub elements: Vec<Element>,
     pub lights: Vec<Light>,

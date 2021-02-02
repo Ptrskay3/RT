@@ -26,11 +26,11 @@ impl Ray {
         let sensor_y =
             field_of_view_adjustment * (1.0 - ((y as f64 + 0.5) / scene.height as f64) * 2.0);
         Self {
-            origin: Point::zero(),
+            origin: scene.origin,
             direction: Vector3 {
-                x: sensor_x,
-                y: sensor_y,
-                z: -1.0,
+                x: sensor_x + scene.direction.x,
+                y: sensor_y + scene.direction.y,
+                z: -1.5 + scene.direction.z,
             }
             .normalize(),
         }
@@ -56,8 +56,8 @@ impl Ray {
         index: f32,
     ) -> Option<Ray> {
         let mut ref_n = normal;
-        let mut eta_t = index as f64;
-        let mut eta_i = 1.0f64;
+        let mut n_t = index as f64;
+        let mut n_i = 1.0f64;
         let mut i_dot_n = incident.dot(&normal);
         if i_dot_n < 0.0 {
             //Outside the surface
@@ -65,11 +65,11 @@ impl Ray {
         } else {
             //Inside the surface; invert the normal and swap the indices of refraction
             ref_n = -normal;
-            eta_t = 1.0;
-            eta_i = index as f64;
+            n_t = 1.0;
+            n_i = index as f64;
         }
 
-        let eta = eta_i / eta_t;
+        let eta = n_i / n_t;
         let k = 1.0 - (eta * eta) * (1.0 - i_dot_n * i_dot_n);
         if k < 0.0 {
             None
