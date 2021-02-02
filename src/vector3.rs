@@ -1,4 +1,5 @@
-use std::ops::{Add, Mul, Neg, Sub};
+use crate::point::Point;
+use std::ops::{Add, Div, Mul, Neg, Sub};
 
 #[derive(Clone, Copy, Debug)]
 pub struct Vector3 {
@@ -43,6 +44,14 @@ impl Vector3 {
             x: self.y * other.z - self.z * other.y,
             y: self.z * other.x - self.x * other.z,
             z: self.x * other.y - self.y * other.x,
+        }
+    }
+
+    pub fn as_point(&self) -> Point {
+        Point {
+            x: self.x,
+            y: self.y,
+            z: self.z,
         }
     }
 }
@@ -99,6 +108,18 @@ impl Mul<f64> for Vector3 {
             x: self.x * other,
             y: self.y * other,
             z: self.z * other,
+        }
+    }
+}
+
+impl Div<f64> for Vector3 {
+    type Output = Vector3;
+
+    fn div(self, other: f64) -> Self {
+        Self {
+            x: self.x / other,
+            y: self.y / other,
+            z: self.z / other,
         }
     }
 }

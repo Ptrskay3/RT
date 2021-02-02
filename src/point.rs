@@ -1,5 +1,5 @@
 use crate::vector3::Vector3;
-use std::ops::{Add, Sub};
+use std::ops::{Add, Div, Sub};
 
 #[derive(Copy, Clone, Debug)]
 #[repr(C)]
@@ -26,6 +26,17 @@ impl Sub<Point> for Point {
             x: self.x - other.x,
             y: self.y - other.y,
             z: self.z - other.z,
+        }
+    }
+}
+
+impl Div<f64> for Point {
+    type Output = Point;
+    fn div(self, other: f64) -> Point {
+        Point {
+            x: self.x / other,
+            y: self.y / other,
+            z: self.z / other,
         }
     }
 }

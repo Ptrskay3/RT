@@ -6,6 +6,7 @@ use crate::vector3::Vector3;
 pub enum SurfaceType {
     Diffuse,
     Reflective { reflectivity: f32 },
+    Refractive { index: f32, transparency: f32 },
 }
 
 #[derive(Clone, Copy)]
@@ -59,7 +60,10 @@ impl Element {
     }
 
     pub fn albedo(&self) -> f32 {
-        return 1.0;
+        match *self {
+            Element::Sphere(ref s) => s.material.albedo,
+            Element::Plane(ref p) => p.material.albedo,
+        }
     }
 }
 
