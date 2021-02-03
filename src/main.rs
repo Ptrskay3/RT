@@ -1,5 +1,5 @@
 use rays::color::{Color, Colorization};
-use rays::light::{DirectionalLight, Light, SphericalLight};
+use rays::light::{Light, SphericalLight};
 use rays::point::Point;
 use rays::primitives::{Element, Material, Plane, Sphere, SurfaceType};
 use rays::render::render;
@@ -47,15 +47,15 @@ fn main() {
         surface: SurfaceType::Diffuse,
     };
 
-    let material5 = Material {
-        color: Colorization::Color(Color {
-            red: 0.3,
-            green: 0.3,
-            blue: 0.3,
-        }),
-        albedo: 1.0,
-        surface: SurfaceType::Diffuse,
-    };
+    // let material5 = Material {
+    //     color: Colorization::Color(Color {
+    //         red: 0.3,
+    //         green: 0.3,
+    //         blue: 0.3,
+    //     }),
+    //     albedo: 1.0,
+    //     surface: SurfaceType::Diffuse,
+    // };
 
     let elements = vec![
         Element::Sphere(Sphere {
@@ -205,11 +205,6 @@ fn main() {
             x: 0.,
             y: 0.3,
             z: 1.0,
-        },
-        direction: Vector3 {
-            x: 0.0,
-            y: 0.2,
-            z: -0.5,
         },
         fov: 90.0,
         elements: elements,

@@ -15,7 +15,6 @@ pub struct Scene {
     pub width: u32,
     pub height: u32,
     pub origin: Point,
-    pub direction: Vector3,
     pub fov: f64,
     pub elements: Vec<Element>,
     pub lights: Vec<Light>,
@@ -31,20 +30,6 @@ impl Scene {
             .min_by(|i1, i2| i1.distance.partial_cmp(&i2.distance).unwrap())
     }
 }
-
-// pub fn get_color(scene: &Scene, ray: &Ray, intersection: &Intersection, depth: u32) -> Color {
-//     let hit_point = ray.origin + (ray.direction * intersection.distance);
-//     let surface_normal = intersection.element.surface_normal(&hit_point);
-
-//     let mut color = shade_diffuse(scene, intersection.element, hit_point, surface_normal);
-//     if let SurfaceType::Reflective { reflectivity } = intersection.element.material().surface {
-//         let reflection_ray =
-//             Ray::create_reflection(surface_normal, ray.direction, hit_point, scene.shadow_bias);
-//         color = color * (1.0 - reflectivity);
-//         color = color + (cast_ray(scene, &reflection_ray, depth + 1) * reflectivity);
-//     }
-//     color
-// }
 
 pub fn get_color(scene: &Scene, ray: &Ray, intersection: &Intersection, depth: u32) -> Color {
     let hit = ray.origin + (ray.direction * intersection.distance);
@@ -124,17 +109,6 @@ fn shade_diffuse(
     color.clamp()
 }
 
-pub fn cast_ray(scene: &Scene, ray: &Ray, depth: u32) -> Color {
-    if depth >= scene.max_recursion {
-        return BLACK;
-    }
-
-    let intersection = scene.trace(&ray);
-    intersection
-        .map(|i| get_color(scene, &ray, &i, depth))
-        .unwrap_or(BLACK)
-}
-
 fn fresnel(incident: Vector3, normal: Vector3, index: f32) -> f64 {
     let i_dot_n = incident.dot(&normal);
     let mut eta_i = 1.0;
@@ -155,4 +129,15 @@ fn fresnel(incident: Vector3, normal: Vector3, index: f32) -> f64 {
         let r_p = ((eta_i * cos_i) - (eta_t * cos_t)) / ((eta_i * cos_i) + (eta_t * cos_t));
         return (r_s * r_s + r_p * r_p) / 2.0;
     }
+}
+
+pub fn cast_ray(scene: &Scene, ray: &Ray, depth: u32) -> Color {
+    if depth >= scene.max_recursion {
+        return BLACK;
+    }
+
+    let intersection = scene.trace(&ray);
+    intersection
+        .map(|i| get_color(scene, &ray, &i, depth))
+        .unwrap_or(BLACK)
 }

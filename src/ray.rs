@@ -28,9 +28,9 @@ impl Ray {
         Self {
             origin: scene.origin,
             direction: Vector3 {
-                x: sensor_x + scene.direction.x,
-                y: sensor_y + scene.direction.y,
-                z: -1.5 + scene.direction.z,
+                x: sensor_x,
+                y: sensor_y,
+                z: -1.5,
             }
             .normalize(),
         }
