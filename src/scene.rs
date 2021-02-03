@@ -4,6 +4,7 @@ use crate::point::Point;
 use crate::primitives::{Element, Hittable, Intersection, SurfaceType};
 use crate::ray::Ray;
 use crate::vector3::Vector3;
+// use rand::prelude::*;
 
 const BLACK: Color = Color {
     red: 0.0,
@@ -42,8 +43,10 @@ pub fn get_color(scene: &Scene, ray: &Ray, intersection: &Intersection, depth: u
             let mut color = shade_diffuse(scene, intersection.element, hit, normal);
             let reflection_ray =
                 Ray::create_reflection(normal, ray.direction, hit, scene.shadow_bias);
+            // let scattered_ray = Ray::create_scatter(&hit);
             color = color * (1.0 - reflectivity);
             color = color + (cast_ray(scene, &reflection_ray, depth + 1) * reflectivity);
+            // + (cast_ray(scene, &scattered_ray, depth + 1) * 0.5);
             color
         }
         SurfaceType::Refractive {
@@ -51,6 +54,8 @@ pub fn get_color(scene: &Scene, ray: &Ray, intersection: &Intersection, depth: u
             transparency,
         } => {
             let mut refraction_color = BLACK;
+            // the effective reflectivity
+            // TODO: Schlick's approximation might be good enough
             let kr = fresnel(ray.direction, normal, index) as f32;
             let surface_color = material
                 .color
@@ -84,6 +89,25 @@ fn shade_diffuse(
     for light in &scene.lights {
         let direction_to_light = -light.direction_from(&hit_point);
 
+        // let reflection_bound_center = hit_point + surface_normal;
+        // let mut x: f64 = 0.0;
+        // let mut y: f64 = 0.0;
+        // let mut z: f64 = 0.0;
+        // loop {
+        //     let mut rng = rand::thread_rng();
+        //     x = rng.gen();
+        //     y = rng.gen();
+        //     z = rng.gen();
+        //     if x * x + y * y + z * z <= 1.0 {
+        //         break;
+        //     }
+        // }
+
+        // let s = reflection_bound_center + Point { x, y, z };
+        // let shadow_ray = Ray {
+        //     origin: hit_point,
+        //     direction: s - hit_point,
+        // };
         let shadow_ray = Ray {
             origin: hit_point + (surface_normal * scene.shadow_bias),
             direction: direction_to_light,
@@ -109,6 +133,8 @@ fn shade_diffuse(
     color.clamp()
 }
 
+// TODO: we assumed that the first media has refractive index = 1,
+// which is not always the case
 fn fresnel(incident: Vector3, normal: Vector3, index: f32) -> f64 {
     let i_dot_n = incident.dot(&normal);
     let mut eta_i = 1.0;

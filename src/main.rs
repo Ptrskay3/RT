@@ -1,4 +1,5 @@
-use rays::color::{Color, Colorization};
+use image;
+use rays::color::{dummy_texture, Color, Colorization};
 use rays::light::{Light, SphericalLight};
 use rays::point::Point;
 use rays::primitives::{Element, Material, Plane, Sphere, SurfaceType};
@@ -8,12 +9,8 @@ use rays::vector3::Vector3;
 
 fn main() {
     let material = Material {
-        color: Colorization::Color(Color {
-            red: 0.8,
-            green: 0.2,
-            blue: 0.4,
-        }),
-        albedo: 1.9,
+        color: Colorization::Texture(image::open("texture.png").unwrap_or(dummy_texture())),
+        albedo: 2.9,
         surface: SurfaceType::Diffuse,
     };
 
@@ -47,22 +44,35 @@ fn main() {
         surface: SurfaceType::Diffuse,
     };
 
-    // let material5 = Material {
-    //     color: Colorization::Color(Color {
-    //         red: 0.3,
-    //         green: 0.3,
-    //         blue: 0.3,
-    //     }),
-    //     albedo: 1.0,
-    //     surface: SurfaceType::Diffuse,
-    // };
+    let material5 = Material {
+        color: Colorization::Color(Color {
+            red: 1.0,
+            green: 1.0,
+            blue: 1.0,
+        }),
+        albedo: 3.0,
+        surface: SurfaceType::Refractive {
+            index: 1.02,
+            transparency: 0.6,
+        },
+    };
+
+    let material6 = Material {
+        color: Colorization::Color(Color {
+            red: 0.8,
+            green: 0.1,
+            blue: 0.1,
+        }),
+        albedo: 2.0,
+        surface: SurfaceType::Diffuse,
+    };
 
     let elements = vec![
         Element::Sphere(Sphere {
             center: Point {
                 x: -1.1,
                 y: 0.5,
-                z: -2.0,
+                z: -1.7,
             },
             radius: 0.5,
             material: material2,
@@ -70,11 +80,29 @@ fn main() {
         Element::Sphere(Sphere {
             center: Point {
                 x: 0.9,
-                y: 1.5,
-                z: -3.6,
+                y: 1.3,
+                z: -3.0,
             },
             radius: 1.0,
             material: material,
+        }),
+        Element::Sphere(Sphere {
+            center: Point {
+                x: 0.08,
+                y: 0.25,
+                z: -0.8,
+            },
+            radius: 0.4,
+            material: material5,
+        }),
+        Element::Sphere(Sphere {
+            center: Point {
+                x: -0.85,
+                y: -0.15,
+                z: -0.5,
+            },
+            radius: 0.2,
+            material: material6,
         }),
         Element::Plane(Plane {
             p: Point {
@@ -102,19 +130,6 @@ fn main() {
             },
             material: material4,
         }),
-        // Element::Plane(Plane {
-        //     p: Point {
-        //         x: 0.0,
-        //         y: 0.0,
-        //         z: 1.0,
-        //     },
-        //     normal: Vector3 {
-        //         x: 0.0,
-        //         y: 0.0,
-        //         z: 5.0,
-        //     },
-        //     material: material5,
-        // }),
     ];
 
     let lights = vec![
@@ -144,58 +159,6 @@ fn main() {
             },
             intensity: 1500.0,
         }),
-        // Light::Spherical(SphericalLight {
-        //     position: Point {
-        //         x: 0.0,
-        //         y: -5.0,
-        //         z: -5.9,
-        //     },
-        //     color: Color {
-        //         red: 1.0,
-        //         green: 1.0,
-        //         blue: 1.0,
-        //     },
-        //     intensity: 100.0,
-        // }),
-        // Light::Directional(DirectionalLight {
-        //     direction: Vector3 {
-        //         x: 0.0,
-        //         y: 2.0,
-        //         z: 1.5,
-        //     },
-        //     color: Color {
-        //         red: 1.0,
-        //         green: 1.0,
-        //         blue: 1.0,
-        //     },
-        //     intensity: 0.3,
-        // }),
-        // Light::Directional(DirectionalLight {
-        //     direction: Vector3 {
-        //         x: 0.0,
-        //         y: 0.0,
-        //         z: 1.0,
-        //     },
-        //     color: Color {
-        //         red: 1.0,
-        //         green: 1.0,
-        //         blue: 1.0,
-        //     },
-        //     intensity: 1.0,
-        // }),
-        // Light::Directional(DirectionalLight {
-        //     direction: Vector3 {
-        //         x: 0.0,
-        //         y: -10.0,
-        //         z: 10.0,
-        //     },
-        //     color: Color {
-        //         red: 1.0,
-        //         green: 1.0,
-        //         blue: 1.0,
-        //     },
-        //     intensity: 0.5,
-        // }),
     ];
 
     let scene = Scene {
@@ -213,5 +176,5 @@ fn main() {
         max_recursion: 15,
     };
     let img = render(&scene);
-    img.save("test.png").unwrap();
+    img.save("examples/1.png").unwrap();
 }

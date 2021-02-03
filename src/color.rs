@@ -1,6 +1,6 @@
 use crate::primitives::TextureCoordinates;
 use crate::utils::{gamma_decode, gamma_encode, wrap};
-use std::ops::{Add, Mul};
+use std::ops::{Add, Div, Mul};
 use std::path::PathBuf;
 
 use image::{DynamicImage, GenericImageView, Pixel, Rgba};
@@ -13,7 +13,6 @@ pub struct Texture {
 pub fn dummy_texture() -> DynamicImage {
     DynamicImage::new_rgb8(1, 1)
 }
-
 
 pub enum Colorization {
     Color(Color),
@@ -62,6 +61,18 @@ impl Mul<f32> for Color {
             red: self.red * other,
             blue: self.blue * other,
             green: self.green * other,
+        }
+    }
+}
+
+impl Div<u8> for Color {
+    type Output = Color;
+
+    fn div(self, other: u8) -> Color {
+        Color {
+            red: self.red / (other as f32),
+            blue: self.blue / (other as f32),
+            green: self.green / (other as f32),
         }
     }
 }

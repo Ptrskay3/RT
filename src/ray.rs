@@ -1,6 +1,7 @@
 use crate::point::Point;
 use crate::scene::Scene;
 use crate::vector3::Vector3;
+use rand::prelude::*;
 
 pub struct Ray {
     pub origin: Point,
@@ -13,7 +14,7 @@ impl Ray {
         self.origin + t * self.direction
     }
 
-    pub fn create_prime(x: u32, y: u32, scene: &Scene) -> Self {
+    pub fn create_prime(x: f64, y: f64, scene: &Scene) -> Self {
         assert!(scene.width > scene.height);
 
         let field_of_view_adjustment = (scene.fov.to_radians() / 2.0).tan();
@@ -48,6 +49,19 @@ impl Ray {
         }
     }
 
+    pub fn create_scatter(hit_point: &Point) -> Ray {
+        let mut rng = rand::thread_rng();
+        Ray {
+            origin: *hit_point,
+            direction: Vector3 {
+                x: rng.gen_range(-1.0..=1.0),
+                y: rng.gen_range(-1.0..=1.0),
+                z: rng.gen_range(-1.0..=1.0),
+            }
+            .normalize(),
+        }
+    }
+
     pub fn create_transmission(
         normal: Vector3,
         incident: Vector3,
@@ -60,10 +74,8 @@ impl Ray {
         let mut n_i = 1.0f64;
         let mut i_dot_n = incident.dot(&normal);
         if i_dot_n < 0.0 {
-            //Outside the surface
             i_dot_n = -i_dot_n;
         } else {
-            //Inside the surface; invert the normal and swap the indices of refraction
             ref_n = -normal;
             n_t = 1.0;
             n_i = index as f64;

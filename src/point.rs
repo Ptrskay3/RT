@@ -51,3 +51,14 @@ impl Add<Vector3> for Point {
         }
     }
 }
+
+impl Add<Point> for Point {
+    type Output = Point;
+    fn add(self, other: Point) -> Point {
+        Point {
+            x: self.x + other.x,
+            y: self.y + other.y,
+            z: self.z + other.z,
+        }
+    }
+}

@@ -142,7 +142,7 @@ impl Hittable for Sphere {
         } else if t1 < 0.0 {
             Some(t0)
         } else {
-            // in case there's two solutions, return the closer ion
+            // in case there's two solutions, return the closer one
             let distance = if t0 < t1 { t0 } else { t1 };
             Some(distance)
         }
